@@ -19,3 +19,5 @@ root@service /code: python manage.py migrate
 ```
 
 Now you can go to [localhost:8085](http://localhost:8085)
+
+https://dev.to/adgaray/dockerizar-un-proyecto-django-2np3
