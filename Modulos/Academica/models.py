@@ -37,16 +37,30 @@ class Curso(models.Model):
     codigo = models.CharField(max_length=6, primary_key=True)
     nombre = models.CharField(max_length=30)
     creditos = models.PositiveSmallIntegerField()
-    docente = models.CharField (max_length=100)
+    docente = models.CharField(max_length=100)
+
     def __str__(self):
-        txt = "{0}({1}) / Docente:{2}"
-        return txt.format(self.nombre,self.codigo,self.docente)
+        return f"{self.nombre} ({self.codigo}) / Docente: {self.docente}"
+
+class Correlativas(models.Model):
+    id_correlativa = models.CharField(max_length=6, primary_key=True)
+    curso = models.ForeignKey(Curso, on_delete=models.CASCADE, related_name='correlativas')
+    curso_correlativo = models.ForeignKey(Curso, on_delete=models.CASCADE, related_name='requisitos')
+
+    def __str__(self):
+        return f"{self.curso} requiere {self.curso_correlativo}"
+
+
+
+
 
 class Matricula (models.Model):
     id = models.AutoField(primary_key=True)
     estudiante = models.ForeignKey (Estudiante, null=False,blank=False,on_delete=models.CASCADE)
     curso = models.ForeignKey (Curso, null=False,blank=False,on_delete=models.CASCADE)
     fechaMatricula = models.DateTimeField(auto_now_add=True)
+
+
 
     def __str__(self):
         txt = "{0} matriculad{1} en el curso {2} /fecha: {3}"
