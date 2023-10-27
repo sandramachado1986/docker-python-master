@@ -59,6 +59,19 @@ class Matricula (models.Model):
     estudiante = models.ForeignKey (Estudiante, null=False,blank=False,on_delete=models.CASCADE)
     curso = models.ForeignKey (Curso, null=False,blank=False,on_delete=models.CASCADE)
     fechaMatricula = models.DateTimeField(auto_now_add=True)
+    def save(self, *args, **kwargs):
+        # Realiza la verificación de correlativas antes de guardar la Matricula
+        if self.curso:
+            # Obtén todas las correlativas del curso que se intenta matricular
+            correlativas = Correlativas.objects.filter(curso=self.curso)
+
+            for correlativa in correlativas:
+                curso_correlativo = correlativa.curso_correlativo
+                # Verifica si el estudiante ha aprobado la correlativa
+                if not Matricula.objects.filter(estudiante=self.estudiante, curso=curso_correlativo).exists():
+                    raise Exception(f"No puedes matricularte en {self.curso} ya que no has aprobado {curso_correlativo}")
+
+        super(Matricula, self).save(*args, **kwargs)
 
 
 
