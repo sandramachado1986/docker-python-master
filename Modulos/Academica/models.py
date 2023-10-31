@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 # Create your models here.
 
@@ -52,22 +53,31 @@ class Correlativas(models.Model):
 
 
 
-
-
 class Matricula (models.Model):
     id = models.AutoField(primary_key=True)
     estudiante = models.ForeignKey (Estudiante, null=False,blank=False,on_delete=models.CASCADE)
     curso = models.ForeignKey (Curso, null=False,blank=False,on_delete=models.CASCADE)
     fechaMatricula = models.DateTimeField(auto_now_add=True)
-    def save(self, *args, **kwargs):
-        # Realiza la verificación de correlativas antes de guardar la Matricula
-        if self.curso:
-            # Obtén todas las correlativas del curso que se intenta matricular
+
+
+def save(self, *args, **kwargs):
+        
+        # Verifica si el usuario logueado pertenece al grupo 'estudiantes'
+        if self.estudiante.groups.filter(name='estudiantes').exists():
+            self.estudiante = self.usuario
+        else:
+            # Obtén la carrera del estudiante
+            carrera_estudiante = self.estudiante.carrera
+
+            # Verifica si el curso pertenece a la misma carrera
+            if self.curso.carrera != carrera_estudiante:
+                raise Exception(f"No puedes matricularte en {self.curso} ya que no pertenece a tu carrera ({carrera_estudiante})")
+
+            # Continúa con la verificación de correlativas
             correlativas = Correlativas.objects.filter(curso=self.curso)
 
             for correlativa in correlativas:
                 curso_correlativo = correlativa.curso_correlativo
-                # Verifica si el estudiante ha aprobado la correlativa
                 if not Matricula.objects.filter(estudiante=self.estudiante, curso=curso_correlativo).exists():
                     raise Exception(f"No puedes matricularte en {self.curso} ya que no has aprobado {curso_correlativo}")
 
@@ -75,7 +85,7 @@ class Matricula (models.Model):
 
 
 
-    def __str__(self):
+def __str__(self):
         txt = "{0} matriculad{1} en el curso {2} /fecha: {3}"
         if self.estudiante.sexo == "F":
             letraSexo = "a"
